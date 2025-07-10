@@ -6,56 +6,63 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"os" // os.Getenv todavía es necesario para MONGO_URI, DB_NAME, COLLECTION_NAME
+
+	// "os" // Ya no se necesita os si no leemos variables de entorno
 	"time"
 
 	"github.com/BastianCarrasco/backend-go/db"
 	"github.com/BastianCarrasco/backend-go/repository"
 	"github.com/BastianCarrasco/backend-go/usecase"
 	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv" // Ya no se necesita godotenv
 )
 
-// Las variables globales que se leerán de las variables de entorno, excepto el puerto
-var (
-	mongoURI       string
-	databaseName   string
-	collectionName string
-	// port ya no es una variable global, será una constante fija
-)
-
+// === Todas las configuraciones como constantes aquí ===
 const (
-	// Puerto fijo directamente en el código
-	fixedPort = ":3000"
+	// ¡ADVERTENCIA DE SEGURIDAD EXTREMA!
+	// NUNCA, NUNCA, NUNCA guardes credenciales sensibles como esta directamente en tu código fuente
+	// en un entorno de producción o si tu código será público (ej. GitHub).
+	// ESTA CONFIGURACIÓN ES SÓLO PARA PROPÓSITOS EDUCATIVOS O DEMOSTRATIVOS,
+	// NO PARA PRODUCCIÓN. Para proyectos reales, USA SIEMPRE VARIABLES DE ENTORNO
+	// o un sistema de gestión de secretos.
+
+	appMongoURI       = "mongodb://mongo:eiyVLCEJjPpFKhkxPCkmXDVSFEqhrwGS@switchback.proxy.rlwy.net:52692"
+	appDatabaseName   = "test"        // Nombre de tu base de datos (según tu ejemplo)
+	appCollectionName = "Pruebas"     // Nombre de tu colección (según tu ejemplo)
+	appPort           = ":3000"       // Puerto fijo directamente en el código
 )
 
+// La función init() ya no es necesaria si no se cargan variables de entorno
+// ni se inicializan variables globales que dependen de ellas.
+// Si aún tienes lógica en init() para otras cosas, déjala.
+// De lo contrario, puedes eliminarla por completo.
 func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Println("No se encontró el archivo .env, intentando leer variables de entorno del sistema.")
-	}
-
-	mongoURI = os.Getenv("MONGO_URI")
-	if mongoURI == "" {
-		log.Fatal("La variable de entorno MONGO_URI no está configurada. Por favor, establécela en .env o como variable del sistema.")
-	}
-
-	databaseName = os.Getenv("DB_NAME")
-	if databaseName == "" {
-		log.Fatal("La variable de entorno DB_NAME no está configurada.")
-	}
-
-	collectionName = os.Getenv("COLLECTION_NAME")
-	if collectionName == "" {
-		log.Fatal("La variable de entorno COLLECTION_NAME no está configurada.")
-	}
-
-	// === REMOVIDA LA LÓGICA DEL PUERTO DE ESTA SECCIÓN ===
-	// Ya no se lee 'PORT' de las variables de entorno
+    // Si tu init() ya no hace nada, puedes eliminar este bloque.
+    // Lo dejo comentado solo para fines de claridad sobre lo que se removió.
+	// if err := godotenv.Load(); err != nil {
+	// 	log.Println("No se encontró el archivo .env, intentando leer variables de entorno del sistema.")
+	// }
+	//
+	// mongoURI = os.Getenv("MONGO_URI")
+	// if mongoURI == "" {
+	// 	log.Fatal("La variable de entorno MONGO_URI no está configurada. Por favor, establécela en .env o como variable del sistema.")
+	// }
+	//
+	// databaseName = os.Getenv("DB_NAME")
+	// if databaseName == "" {
+	// 	log.Fatal("La variable de entorno DB_NAME no está configurada.")
+	// }
+	//
+	// collectionName = os.Getenv("COLLECTION_NAME")
+	// if collectionName == "" {
+	// 	log.Fatal("La variable de entorno COLLECTION_NAME no está configurada.")
+	// }
 }
 
 func main() {
 	// 1. Conexión a MongoDB
-	client, err := db.ConnectDB(mongoURI)
+	// Usamos appMongoURI directamente
+	client, err := db.ConnectDB(appMongoURI)
 	if err != nil {
 		log.Fatalf("Fallo crítico al conectar a la base de datos: %v", err)
 	}
@@ -69,7 +76,8 @@ func main() {
 	}()
 
 	// Obtener la colección
-	razaCollection := client.Database(databaseName).Collection(collectionName)
+	// Usamos appDatabaseName y appCollectionName directamente
+	razaCollection := client.Database(appDatabaseName).Collection(appCollectionName)
 
 	// 2. Inyección de Dependencias
 	razaRepo := &repository.RazaRepository{MongoCollection: razaCollection}
@@ -83,8 +91,8 @@ func main() {
 	router.HandleFunc("/razas/{id}", getRazaByIDHandler(razaUseCase)).Methods("GET")
 
 	// 4. Iniciar el Servidor HTTP
-	log.Printf("Servidor escuchando en el puerto %s", fixedPort) // Usa la constante fixedPort
-	log.Fatal(http.ListenAndServe(fixedPort, router))           // Usa la constante fixedPort
+	log.Printf("Servidor escuchando en el puerto %s", appPort) // Usa la constante appPort
+	log.Fatal(http.ListenAndServe(appPort, router))           // Usa la constante appPort
 }
 
 // ... los handlers (getAllRacesHandler, getRazaByIDHandler) permanecen iguales ...
