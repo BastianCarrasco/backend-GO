@@ -6,35 +6,34 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"os" // Necesario para os.Getenv
+	"os" // os.Getenv todavía es necesario para MONGO_URI, DB_NAME, COLLECTION_NAME
 	"time"
 
 	"github.com/BastianCarrasco/backend-go/db"
 	"github.com/BastianCarrasco/backend-go/repository"
 	"github.com/BastianCarrasco/backend-go/usecase"
 	"github.com/gorilla/mux"
-	"github.com/joho/godotenv" // Importar godotenv
+	"github.com/joho/godotenv"
 )
 
-// Estas constantes ya no necesitan valores predeterminados.
-// Se obtendrán de las variables de entorno.
+// Las variables globales que se leerán de las variables de entorno, excepto el puerto
 var (
 	mongoURI       string
 	databaseName   string
 	collectionName string
-	port           string
+	// port ya no es una variable global, será una constante fija
+)
+
+const (
+	// Puerto fijo directamente en el código
+	fixedPort = ":3000"
 )
 
 func init() {
-	// init() se ejecuta automáticamente antes de main()
-	// Cargar variables de entorno desde .env
 	if err := godotenv.Load(); err != nil {
 		log.Println("No se encontró el archivo .env, intentando leer variables de entorno del sistema.")
-		// Si no se encuentra .env, el programa intentará leer directamente de las variables de entorno del sistema.
-		// Esto es útil para entornos de despliegue donde .env no existe y las variables están preconfiguradas.
 	}
 
-	// Obtener los valores de las variables de entorno
 	mongoURI = os.Getenv("MONGO_URI")
 	if mongoURI == "" {
 		log.Fatal("La variable de entorno MONGO_URI no está configurada. Por favor, establécela en .env o como variable del sistema.")
@@ -50,17 +49,13 @@ func init() {
 		log.Fatal("La variable de entorno COLLECTION_NAME no está configurada.")
 	}
 
-	port = os.Getenv("PORT")
-	if port == "" {
-		log.Println("La variable de entorno PORT no está configurada, usando puerto por defecto: :3000")
-		port = ":8080" // Puerto por defecto si no se especifica en .env
-	}
+	// === REMOVIDA LA LÓGICA DEL PUERTO DE ESTA SECCIÓN ===
+	// Ya no se lee 'PORT' de las variables de entorno
 }
 
 func main() {
-	// 1. Conexión a MongoDB usando la función del paquete 'db'
-	// db.ConnectDB() necesita la URI, por eso la pasamos aquí
-	client, err := db.ConnectDB(mongoURI) // Pasar mongoURI a ConnectDB
+	// 1. Conexión a MongoDB
+	client, err := db.ConnectDB(mongoURI)
 	if err != nil {
 		log.Fatalf("Fallo crítico al conectar a la base de datos: %v", err)
 	}
@@ -88,12 +83,11 @@ func main() {
 	router.HandleFunc("/razas/{id}", getRazaByIDHandler(razaUseCase)).Methods("GET")
 
 	// 4. Iniciar el Servidor HTTP
-	log.Printf("Servidor escuchando en el puerto %s", port)
-	log.Fatal(http.ListenAndServe(port, router))
+	log.Printf("Servidor escuchando en el puerto %s", fixedPort) // Usa la constante fixedPort
+	log.Fatal(http.ListenAndServe(fixedPort, router))           // Usa la constante fixedPort
 }
 
 // ... los handlers (getAllRacesHandler, getRazaByIDHandler) permanecen iguales ...
-// Handler para obtener todas las razas
 func getAllRacesHandler(uc usecase.RazaUseCase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -114,7 +108,6 @@ func getAllRacesHandler(uc usecase.RazaUseCase) http.HandlerFunc {
 	}
 }
 
-// Handler para obtener una raza por ID
 func getRazaByIDHandler(uc usecase.RazaUseCase) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
