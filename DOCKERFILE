@@ -1,0 +1,36 @@
+# Etapa 1: Construcción (usa una imagen con Go instalado para compilar)
+FROM golang:1.22-alpine AS builder
+
+# Establece el directorio de trabajo dentro del contenedor
+WORKDIR /app
+
+# Copia los archivos de go.mod y go.sum para descargar las dependencias primero
+COPY go.mod ./
+COPY go.sum ./
+RUN go mod download
+
+# Copia todo el código fuente de tu aplicación
+COPY . .
+
+# Construye la aplicación Go
+# CGO_ENABLED=0 crea un binario estático (más portable)
+# -ldflags="-s -w" reduce el tamaño del binario eliminando símbolos de depuración
+# -o mi_aplicacion_go especifica el nombre del ejecutable de salida
+# /app es el directorio de trabajo dentro del contenedor
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /app/backend-go-app main.go
+
+# Etapa 2: Ejecución (usa una imagen ligera para el ejecutable final)
+FROM alpine:latest
+
+# Establece el puerto en el que la aplicación escuchará
+# El valor por defecto de PORT en tu código es :3000, si lo cambias aquí, cámbialo allí también.
+ENV PORT=3000
+
+# Copia el binario compilado desde la etapa de construcción
+COPY --from=builder /app/backend-go-app /usr/local/bin/backend-go-app
+
+# Copia el archivo .env si es necesario, pero es mejor usar variables de Railway
+# COPY .env /app/.env
+
+# Define el comando para ejecutar tu aplicación
+CMD ["/usr/local/bin/backend-go-app"]
