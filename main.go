@@ -53,7 +53,7 @@ func init() {
 	port = os.Getenv("PORT")
 	if port == "" {
 		log.Println("La variable de entorno PORT no está configurada, usando puerto por defecto: :3000")
-		port = ":3000" // Puerto por defecto si no se especifica en .env
+		port = ":8080" // Puerto por defecto si no se especifica en .env
 	}
 }
 
