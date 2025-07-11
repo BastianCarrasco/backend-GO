@@ -1,145 +1,156 @@
-// main.go
 package main
 
 import (
-	"context"
-	"encoding/json"
-	"log"
-	"net/http"
-
-	// "os" // Ya no se necesita os si no leemos variables de entorno
-	"time"
-
-	"github.com/BastianCarrasco/backend-go/db"
-	"github.com/BastianCarrasco/backend-go/repository"
-	"github.com/BastianCarrasco/backend-go/usecase"
-	"github.com/gorilla/mux"
-	// "github.com/joho/godotenv" // Ya no se necesita godotenv
+	"encoding/json" // Para trabajar con JSON
+	"fmt"           // Para formatear cadenas de texto e imprimir
+	"log"           // Para logging de errores
+	"net/http"      // Para el servidor HTTP
 )
 
-// === Todas las configuraciones como constantes aquí ===
-const (
-	// ¡ADVERTENCIA DE SEGURIDAD EXTREMA!
-	// NUNCA, NUNCA, NUNCA guardes credenciales sensibles como esta directamente en tu código fuente
-	// en un entorno de producción o si tu código será público (ej. GitHub).
-	// ESTA CONFIGURACIÓN ES SÓLO PARA PROPÓSITOS EDUCATIVOS O DEMOSTRATIVOS,
-	// NO PARA PRODUCCIÓN. Para proyectos reales, USA SIEMPRE VARIABLES DE ENTORNO
-	// o un sistema de gestión de secretos.
+// Definición de una estructura para simular los datos de la empresa
+// Las etiquetas `json:"nombreCampo"` son importantes para la serialización/deserialización a JSON
+type Empresa struct {
+	ID                 string   `json:"_id"`
+	Nombre             string   `json:"nombre"`
+	Apellido           string   `json:"apellido"`
+	EmpresaOrganizacion string   `json:"empresaOrganizacion"`
+	AreaTrabajo        string   `json:"areaTrabajo"`
+	CorreoElectronico  string   `json:"correoElectronico"`
+	NumeroTelefono     string   `json:"numeroTelefono"`
+	ContactoWeb        string   `json:"contactoWeb"`
+	VinculoPUCV        []string `json:"vinculoPUCV"`
+	ActividadesServicios string   `json:"actividadesServicios"`
+	Desafio1           string   `json:"desafio1"`
+	Desafio2           string   `json:"desafio2"`
+	Desafio3           string   `json:"desafio3"`
+	InteresInformacion string   `json:"interesInformacion"`
+	CreatedAt          string   `json:"createdAt"`
+	UpdatedAt          string   `json:"updatedAt"`
+}
 
-	appMongoURI       = "mongodb://mongo:eiyVLCEJjPpFKhkxPCkmXDVSFEqhrwGS@switchback.proxy.rlwy.net:52692"
-	appDatabaseName   = "test"        // Nombre de tu base de datos (según tu ejemplo)
-	appCollectionName = "Pruebas"     // Nombre de tu colección (según tu ejemplo)
-	appPort           = ":3000"       // Puerto fijo directamente en el código
-)
+// Estructura para la respuesta de la API (simulando el formato de tu frontend)
+type ApiResponse struct {
+	Status  string    `json:"status"`
+	Message string    `json:"message"`
+	Data    []Empresa `json:"data"`
+}
 
-// La función init() ya no es necesaria si no se cargan variables de entorno
-// ni se inicializan variables globales que dependen de ellas.
-// Si aún tienes lógica en init() para otras cosas, déjala.
-// De lo contrario, puedes eliminarla por completo.
-func init() {
-    // Si tu init() ya no hace nada, puedes eliminar este bloque.
-    // Lo dejo comentado solo para fines de claridad sobre lo que se removió.
-	// if err := godotenv.Load(); err != nil {
-	// 	log.Println("No se encontró el archivo .env, intentando leer variables de entorno del sistema.")
-	// }
-	//
-	// mongoURI = os.Getenv("MONGO_URI")
-	// if mongoURI == "" {
-	// 	log.Fatal("La variable de entorno MONGO_URI no está configurada. Por favor, establécela en .env o como variable del sistema.")
-	// }
-	//
-	// databaseName = os.Getenv("DB_NAME")
-	// if databaseName == "" {
-	// 	log.Fatal("La variable de entorno DB_NAME no está configurada.")
-	// }
-	//
-	// collectionName = os.Getenv("COLLECTION_NAME")
-	// if collectionName == "" {
-	// 	log.Fatal("La variable de entorno COLLECTION_NAME no está configurada.")
-	// }
+// Datos de empresas de ejemplo
+var empresasData = []Empresa{
+	{
+		ID:                  "60d5ec49f8c6d40015b6d5e7",
+		Nombre:              "Juan",
+		Apellido:            "Pérez",
+		EmpresaOrganizacion: "Tech Solutions S.A.",
+		AreaTrabajo:         "Desarrollo de Software",
+		CorreoElectronico:   "juan.perez@techsol.com",
+		NumeroTelefono:      "+56912345678",
+		ContactoWeb:         "http://www.techsol.com",
+		VinculoPUCV:         []string{"Ex-alumno Ingeniería Informática", "Mentor Startup PUCV"},
+		ActividadesServicios: "Desarrollo de aplicaciones web y móviles.",
+		Desafio1:            "Escalar nuestra infraestructura en la nube.",
+		Desafio2:            "Integrar IA en nuestros productos existentes.",
+		Desafio3:            "Atraer talento especializado en ciberseguridad.",
+		InteresInformacion:  "si",
+		CreatedAt:           "2023-01-15T10:00:00Z",
+		UpdatedAt:           "2023-01-15T10:00:00Z",
+	},
+	{
+		ID:                  "60d5ec49f8c6d40015b6d5e8",
+		Nombre:              "María",
+		Apellido:            "Gómez",
+		EmpresaOrganizacion: "Innovate Consultores",
+		AreaTrabajo:         "Consultoría de Negocios",
+		CorreoElectronico:   "maria.gomez@innovate.cl",
+		NumeroTelefono:      "+56987654321",
+		ContactoWeb:         "http://www.innovate.cl",
+		VinculoPUCV:         []string{"Docente invitada Finanzas"},
+		ActividadesServicios: "Asesoría estratégica y gestión de proyectos.",
+		Desafio1:            "Expansión a mercados internacionales.",
+		Desafio2:            "Optimización de procesos internos con tecnología.",
+		Desafio3:            "", // Puede estar vacío
+		InteresInformacion:  "no",
+		CreatedAt:           "2023-02-01T11:30:00Z",
+		UpdatedAt:           "2023-02-01T11:30:00Z",
+	},
+	{
+		ID:                  "60d5ec49f8c6d40015b6d5e9",
+		Nombre:              "Carlos",
+		Apellido:            "Rodríguez",
+		EmpresaOrganizacion: "Ecodevelop Sostenible",
+		AreaTrabajo:         "Energías Renovables",
+		CorreoElectronico:   "carlos.rodriguez@ecodevelop.cl",
+		NumeroTelefono:      "+56923456789",
+		ContactoWeb:         "http://www.ecodevelop.cl",
+		VinculoPUCV:         []string{"Colaborador de Investigación"},
+		ActividadesServicios: "Implementación de soluciones solares y eólicas.",
+		Desafio1:            "Obtener financiamiento para proyectos de gran escala.",
+		Desafio2:            "Desarrollar nuevas tecnologías de almacenamiento de energía.",
+		Desafio3:            "",
+		InteresInformacion:  "si",
+		CreatedAt:           "2023-03-10T09:15:00Z",
+		UpdatedAt:           "2023-03-10T09:15:00Z",
+	},
+}
+
+// homeHandler responde a la ruta "/"
+func homeHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "¡Bienvenido a tu backend simple en Go!")
+}
+
+// saludoHandler responde a la ruta "/api/saludo"
+func saludoHandler(w http.ResponseWriter, r *http.Request) {
+	// Obtener el parámetro 'nombre' de la query string
+	nombre := r.URL.Query().Get("nombre")
+
+	if nombre == "" {
+		nombre = "mundo" // Valor por defecto si no se proporciona 'nombre'
+	}
+
+	fmt.Fprintf(w, "¡Hola, %s! Desde Go.", nombre)
+}
+
+// empresasHandler responde a la ruta "/api/empresas"
+func empresasHandler(w http.ResponseWriter, r *http.Request) {
+	// Configurar el encabezado para indicar que la respuesta es JSON
+	w.Header().Set("Content-Type", "application/json")
+	// Configurar CORS para permitir peticiones desde cualquier origen (para desarrollo)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	// Si es una petición OPTIONS (preflight CORS), solo enviar los headers y salir
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	// Crear la respuesta con el formato ApiResponse
+	response := ApiResponse{
+		Status:  "success",
+		Message: "Empresas obtenidas correctamente",
+		Data:    empresasData,
+	}
+
+	// Codificar la estructura a JSON y enviarla como respuesta
+	err := json.NewEncoder(w).Encode(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func main() {
-	// 1. Conexión a MongoDB
-	// Usamos appMongoURI directamente
-	client, err := db.ConnectDB(appMongoURI)
-	if err != nil {
-		log.Fatalf("Fallo crítico al conectar a la base de datos: %v", err)
-	}
-	defer func() {
-		disconnectCtx, cancelDisconnect := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancelDisconnect()
-		if err = client.Disconnect(disconnectCtx); err != nil {
-			log.Fatalf("Error al desconectar de MongoDB: %v", err)
-		}
-		log.Println("Desconectado de MongoDB.")
-	}()
+	// Registrar los manejadores de ruta
+	http.HandleFunc("/", homeHandler)
+	http.HandleFunc("/api/saludo", saludoHandler)
+	http.HandleFunc("/api/empresas", empresasHandler) // Nuevo endpoint para las empresas
 
-	// Obtener la colección
-	// Usamos appDatabaseName y appCollectionName directamente
-	razaCollection := client.Database(appDatabaseName).Collection(appCollectionName)
+	// Definir el puerto en el que el servidor escuchará
+	port := ":8080"
+	fmt.Printf("Servidor Go escuchando en http://localhost%s\n", port)
 
-	// 2. Inyección de Dependencias
-	razaRepo := &repository.RazaRepository{MongoCollection: razaCollection}
-	razaUseCase := usecase.NewRazaUseCase(*razaRepo)
-
-	// 3. Configuración del Router (Gorilla Mux)
-	router := mux.NewRouter()
-
-	// Endpoints para Raza
-	router.HandleFunc("/razas", getAllRacesHandler(razaUseCase)).Methods("GET")
-	router.HandleFunc("/razas/{id}", getRazaByIDHandler(razaUseCase)).Methods("GET")
-
-	// 4. Iniciar el Servidor HTTP
-	log.Printf("Servidor escuchando en el puerto %s", appPort) // Usa la constante appPort
-	log.Fatal(http.ListenAndServe(appPort, router))           // Usa la constante appPort
-}
-
-// ... los handlers (getAllRacesHandler, getRazaByIDHandler) permanecen iguales ...
-func getAllRacesHandler(uc usecase.RazaUseCase) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		razas, err := uc.GetAllRaces(ctx)
-		if err != nil {
-			log.Printf("Error al obtener todas las razas: %v", err)
-			http.Error(w, "Error interno del servidor", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(razas); err != nil {
-			log.Printf("Error al codificar respuesta JSON: %v", err)
-			http.Error(w, "Error al serializar respuesta", http.StatusInternalServerError)
-		}
-	}
-}
-
-func getRazaByIDHandler(uc usecase.RazaUseCase) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		id := vars["id"]
-
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		raza, err := uc.GetRazaByID(ctx, id)
-		if err != nil {
-			log.Printf("Error al obtener raza por ID %s: %v", id, err)
-			http.Error(w, "Error interno del servidor", http.StatusInternalServerError)
-			return
-		}
-
-		if raza == nil {
-			http.Error(w, "Raza no encontrada", http.StatusNotFound)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(raza); err != nil {
-			log.Printf("Error al codificar respuesta JSON: %v", err)
-			http.Error(w, "Error al serializar respuesta", http.StatusInternalServerError)
-		}
-	}
+	// Iniciar el servidor HTTP
+	// log.Fatal detendrá el programa si hay un error al iniciar el servidor
+	log.Fatal(http.ListenAndServe(port, nil))
 }
