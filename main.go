@@ -1,38 +1,36 @@
+// main.go
 package main
 
 import (
-	"fmt"      // Para formatear cadenas de texto e imprimir
-	"log"      // Para logging de errores
-	"net/http" // Para el servidor HTTP
-	"os"
+	"fmt"
+	"log"
+	"net/http"
+	"os" // Asegúrate de importar os
 
 	"github.com/joho/godotenv"
 )
 
-// homeHandler responde a la ruta "/"
 func homeHandler(w http.ResponseWriter, r *http.Request) {
-	godotenv.Load()
-	link := os.Getenv("LINK")
-	log.Println("LINK:", link)
-	fmt.Fprintf(w, "¡Servidor web Go funcionando!")
-	fmt.Println("LINK:", link)
-
+    link := os.Getenv("LINK") // Ahora LINK ya estará cargado
+    log.Println("LINK dentro de homeHandler:", link)
+    fmt.Fprintf(w, "¡Servidor web Go funcionando! LINK: %s", link)
 }
 
 func main() {
-	godotenv.Load()
-	link := os.Getenv("LINK")
-	log.Println("LINK:", link)
-	// Registrar el manejador de ruta para la raíz
-	http.HandleFunc("/", homeHandler)
+    // Cargar variables de entorno una única vez al inicio de main
+    err := godotenv.Load()
+    if err != nil {
+        log.Println("Advertencia: No se pudo cargar el archivo .env")
+        // No es Fatal aquí si no es estrictamente necesario,
+        // ya que podría haber vars de entorno ya configuradas en el sistema.
+    }
 
-	// Definir el puerto en el que el servidor escuchará
-	port := ":8080"
+    link := os.Getenv("LINK")
+    log.Println("LINK al iniciar el servidor:", link)
 
-	// Mensaje simplificado para la consola
-	fmt.Println("Servidor Go conectado correctamente. Escuchando en el puerto", port)
+    http.HandleFunc("/", homeHandler)
 
-	// Iniciar el servidor HTTP
-	// log.Fatal detendrá el programa si hay un error al iniciar el servidor
-	log.Fatal(http.ListenAndServe(port, nil))
+    port := ":8080"
+    fmt.Println("Servidor Go conectado correctamente. Escuchando en el puerto", port)
+    log.Fatal(http.ListenAndServe(port, nil))
 }
