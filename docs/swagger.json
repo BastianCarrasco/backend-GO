@@ -1,0 +1,202 @@
+{
+    "schemes": [
+        "http",
+        "//",
+        "Si",
+        "usas",
+        "HTTPS",
+        "en",
+        "producción,",
+        "añade",
+        "\"https\"",
+        "aquí",
+        "también"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "Esta es la API para la gestión de proyectos de investigación de la UNAB.",
+        "title": "API de Proyectos UNAB",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "Equipo de Desarrollo",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080 // ¡IMPORTANTE! Este debe coincidir con 'apiHost' definido en main()",
+    "basePath": "/",
+    "paths": {
+        "/proyectos": {
+            "get": {
+                "description": "Obtiene una lista de todos los proyectos de investigación disponibles.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proyectos"
+                ],
+                "summary": "Obtener todos los proyectos",
+                "responses": {
+                    "200": {
+                        "description": "Lista de proyectos obtenida exitosamente",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Proyecto"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor al buscar proyectos",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/proyectos/{id}": {
+            "get": {
+                "description": "Obtiene los detalles de un proyecto específico utilizando su ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proyectos"
+                ],
+                "summary": "Obtener un proyecto por ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID del Proyecto (MongoDB ObjectID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalles del proyecto obtenidos exitosamente",
+                        "schema": {
+                            "$ref": "#/definitions/models.Proyecto"
+                        }
+                    },
+                    "400": {
+                        "description": "ID de proyecto inválido",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Proyecto no encontrado",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor al buscar proyecto",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Academico": {
+            "type": "object",
+            "properties": {
+                "amaterno": {
+                    "type": "string"
+                },
+                "apaterno": {
+                    "type": "string"
+                },
+                "nombre": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Proyecto": {
+            "type": "object",
+            "properties": {
+                "academicos": {
+                    "description": "Un slice de Academicos",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Academico"
+                    }
+                },
+                "apoyo": {
+                    "type": "string"
+                },
+                "comentarios": {
+                    "type": "string"
+                },
+                "convocatoria": {
+                    "type": "string"
+                },
+                "detalleApoyo": {
+                    "type": "string"
+                },
+                "estatus": {
+                    "type": "string"
+                },
+                "estudiantes": {
+                    "description": "Parece ser un array vacío, puedes usar interface{} o un tipo más específico si cambia",
+                    "type": "array",
+                    "items": {}
+                },
+                "fechaPostulacion": {
+                    "description": "Usamos time.Time para fechas ISO",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "_id de MongoDB, omitempty para inserciones",
+                    "type": "string"
+                },
+                "idkth": {
+                    "description": "Usamos *string para campos que pueden ser null",
+                    "type": "string"
+                },
+                "instConv": {
+                    "type": "string"
+                },
+                "monto": {
+                    "type": "integer"
+                },
+                "nombre": {
+                    "type": "string"
+                },
+                "tematica": {
+                    "type": "string"
+                },
+                "tipoConvocatoria": {
+                    "type": "string"
+                },
+                "unidad": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

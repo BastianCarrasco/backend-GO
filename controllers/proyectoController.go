@@ -5,37 +5,42 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strings" // Necesario para strings.Split
+	"strings"
 	"time"
 
 	"github.com/BastianCarrasco/backend-GO/db"
-	"github.com/BastianCarrasco/backend-GO/models"
+	"github.com/BastianCarrasco/backend-GO/models" // Asegúrate de que models.Proyecto esté bien definido aquí
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo" // Asegúrate de que mongo esté importado
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // setCORSHeaders es una función auxiliar para establecer los encabezados CORS
-// Esto ayuda a mantener el código DRY (Don't Repeat Yourself)
 func setCORSHeaders(w http.ResponseWriter, methods string) {
-	w.Header().Set("Access-Control-Allow-Origin", "*") // Permite cualquier origen (para desarrollo)
+	w.Header().Set("Access-Control-Allow-Origin", "*") 
 	w.Header().Set("Access-Control-Allow-Methods", methods)
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 }
 
-// GetProyectosHandler obtiene todos los proyectos de la colección
+// @Summary Obtener todos los proyectos
+// @Description Obtiene una lista de todos los proyectos de investigación disponibles.
+// @Tags Proyectos
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.Proyecto "Lista de proyectos obtenida exitosamente"
+// @Failure 500 {string} string "Error interno del servidor al buscar proyectos"
+// @Router /proyectos [get]
 func GetProyectosHandler(w http.ResponseWriter, r *http.Request) {
-	// Manejar preflight OPTIONS request para CORS
 	if r.Method == http.MethodOptions {
 		setCORSHeaders(w, "GET, OPTIONS")
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 
-	setCORSHeaders(w, "GET") // Establece los encabezados CORS para GET
+	setCORSHeaders(w, "GET")
 
-	collection := db.GetCollection("PROYECTOS") // O db.GetProyectosCollection()
+	collection := db.GetCollection("PROYECTOS") 
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -59,36 +64,40 @@ func GetProyectosHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(proyectos)
 }
 
-// GetProyectoByIDHandler obtiene un proyecto específico por su ID
+// @Summary Obtener un proyecto por ID
+// @Description Obtiene los detalles de un proyecto específico utilizando su ID.
+// @Tags Proyectos
+// @Accept json
+// @Produce json
+// @Param id path string true "ID del Proyecto (MongoDB ObjectID)"
+// @Success 200 {object} models.Proyecto "Detalles del proyecto obtenidos exitosamente"
+// @Failure 400 {string} string "ID de proyecto inválido"
+// @Failure 404 {string} string "Proyecto no encontrado"
+// @Failure 500 {string} string "Error interno del servidor al buscar proyecto"
+// @Router /proyectos/{id} [get]
 func GetProyectoByIDHandler(w http.ResponseWriter, r *http.Request) {
-	// Manejar preflight OPTIONS request para CORS
 	if r.Method == http.MethodOptions {
 		setCORSHeaders(w, "GET, OPTIONS")
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 
-	setCORSHeaders(w, "GET") // Establece los encabezados CORS para GET
+	setCORSHeaders(w, "GET")
 
-	// Extraer el ID de la URL
-	// Usamos strings.Split para ser explícitos.
-	// r.URL.Path será algo como "/proyectos/689d6c..."
 	pathSegments := strings.Split(r.URL.Path, "/")
-	// pathSegments[0] será "", pathSegments[1] será "proyectos", pathSegments[2] será el ID
-	if len(pathSegments) < 3 || pathSegments[2] == "" { // Verifica que haya un ID en la posición 2
+	if len(pathSegments) < 3 || pathSegments[2] == "" {
 		http.Error(w, "ID de proyecto no proporcionado en la URL", http.StatusBadRequest)
 		return
 	}
 	proyectoIDStr := pathSegments[2]
 
-	// Convertir el ID de string a primitive.ObjectID
 	objID, err := primitive.ObjectIDFromHex(proyectoIDStr)
 	if err != nil {
 		http.Error(w, "ID de proyecto inválido", http.StatusBadRequest)
 		return
 	}
 
-	collection := db.GetCollection("PROYECTOS") // O db.GetProyectosCollection()
+	collection := db.GetCollection("PROYECTOS") 
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -108,5 +117,3 @@ func GetProyectoByIDHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(proyecto)
 }
-
-// NOTA: Para POST, PUT, DELETE, añadirías funciones similares en este archivo.

@@ -1,0 +1,143 @@
+basePath: /
+definitions:
+  models.Academico:
+    properties:
+      amaterno:
+        type: string
+      apaterno:
+        type: string
+      nombre:
+        type: string
+    type: object
+  models.Proyecto:
+    properties:
+      academicos:
+        description: Un slice de Academicos
+        items:
+          $ref: '#/definitions/models.Academico'
+        type: array
+      apoyo:
+        type: string
+      comentarios:
+        type: string
+      convocatoria:
+        type: string
+      detalleApoyo:
+        type: string
+      estatus:
+        type: string
+      estudiantes:
+        description: Parece ser un array vacío, puedes usar interface{} o un tipo
+          más específico si cambia
+        items: {}
+        type: array
+      fechaPostulacion:
+        description: Usamos time.Time para fechas ISO
+        type: string
+      id:
+        description: _id de MongoDB, omitempty para inserciones
+        type: string
+      idkth:
+        description: Usamos *string para campos que pueden ser null
+        type: string
+      instConv:
+        type: string
+      monto:
+        type: integer
+      nombre:
+        type: string
+      tematica:
+        type: string
+      tipoConvocatoria:
+        type: string
+      unidad:
+        type: string
+    type: object
+host: localhost:8080 // ¡IMPORTANTE! Este debe coincidir con 'apiHost' definido en
+  main()
+info:
+  contact:
+    email: support@swagger.io
+    name: Equipo de Desarrollo
+    url: http://www.swagger.io/support
+  description: Esta es la API para la gestión de proyectos de investigación de la
+    UNAB.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: API de Proyectos UNAB
+  version: "1.0"
+paths:
+  /proyectos:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene una lista de todos los proyectos de investigación disponibles.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de proyectos obtenida exitosamente
+          schema:
+            items:
+              $ref: '#/definitions/models.Proyecto'
+            type: array
+        "500":
+          description: Error interno del servidor al buscar proyectos
+          schema:
+            type: string
+      summary: Obtener todos los proyectos
+      tags:
+      - Proyectos
+  /proyectos/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Obtiene los detalles de un proyecto específico utilizando su ID.
+      parameters:
+      - description: ID del Proyecto (MongoDB ObjectID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detalles del proyecto obtenidos exitosamente
+          schema:
+            $ref: '#/definitions/models.Proyecto'
+        "400":
+          description: ID de proyecto inválido
+          schema:
+            type: string
+        "404":
+          description: Proyecto no encontrado
+          schema:
+            type: string
+        "500":
+          description: Error interno del servidor al buscar proyecto
+          schema:
+            type: string
+      summary: Obtener un proyecto por ID
+      tags:
+      - Proyectos
+schemes:
+- http
+- //
+- Si
+- usas
+- HTTPS
+- en
+- producción,
+- añade
+- '"https"'
+- aquí
+- también
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
