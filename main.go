@@ -11,7 +11,12 @@ import (
 
 // homeHandler responde a la ruta "/"
 func homeHandler(w http.ResponseWriter, r *http.Request) {
+	godotenv.Load()
+	link := os.Getenv("LINK")
+	log.Println("LINK:", link)
 	fmt.Fprintf(w, "¡Servidor web Go funcionando!")
+	fmt.Println("LINK:", link)
+
 }
 
 func main() {
