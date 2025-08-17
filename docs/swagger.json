@@ -28,7 +28,7 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:8080 // ¡IMPORTANTE! Este debe coincidir con 'apiHost' definido en main()",
+    "host": "localhost:8080",
     "basePath": "/",
     "paths": {
         "/proyectos": {

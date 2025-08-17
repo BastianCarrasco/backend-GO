@@ -53,8 +53,7 @@ definitions:
       unidad:
         type: string
     type: object
-host: localhost:8080 // ¡IMPORTANTE! Este debe coincidir con 'apiHost' definido en
-  main()
+host: localhost:8080
 info:
   contact:
     email: support@swagger.io

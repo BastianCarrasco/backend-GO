@@ -197,7 +197,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080 // ¡IMPORTANTE! Este debe coincidir con 'apiHost' definido en main()",
+	Host:             "localhost:8080",
 	BasePath:         "/",
 	Schemes:          []string{"http", "//", "Si", "usas", "HTTPS", "en", "producción,", "añade", "\"https\"", "aquí", "también"},
 	Title:            "API de Proyectos UNAB",
