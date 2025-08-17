@@ -4,6 +4,9 @@ import (
 	"fmt"      // Para formatear cadenas de texto e imprimir
 	"log"      // Para logging de errores
 	"net/http" // Para el servidor HTTP
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
 // homeHandler responde a la ruta "/"
@@ -12,6 +15,9 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	godotenv.Load()
+	link := os.Getenv("LINK")
+	log.Println("LINK:", link)
 	// Registrar el manejador de ruta para la raíz
 	http.HandleFunc("/", homeHandler)
 
