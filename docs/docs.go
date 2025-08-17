@@ -197,9 +197,9 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "localhost:8080 // ESTA ANOTACIÓN SERÁ SOBREESCRITA POR main()",
 	BasePath:         "/",
-	Schemes:          []string{"http", "//", "Si", "usas", "HTTPS", "en", "producción,", "añade", "\"https\"", "aquí", "también"},
+	Schemes:          []string{"http", "//", "ESTA", "ANOTACIÓN", "SERÁ", "SOBREESCRITA", "POR", "main()"},
 	Title:            "API de Proyectos UNAB",
 	Description:      "Esta es la API para la gestión de proyectos de investigación de la UNAB.",
 	InfoInstanceName: "swagger",

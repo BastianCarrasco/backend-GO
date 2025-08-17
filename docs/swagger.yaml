@@ -53,7 +53,7 @@ definitions:
       unidad:
         type: string
     type: object
-host: localhost:8080
+host: localhost:8080 // ESTA ANOTACIÓN SERÁ SOBREESCRITA POR main()
 info:
   contact:
     email: support@swagger.io
@@ -125,15 +125,12 @@ paths:
 schemes:
 - http
 - //
-- Si
-- usas
-- HTTPS
-- en
-- producción,
-- añade
-- '"https"'
-- aquí
-- también
+- ESTA
+- ANOTACIÓN
+- SERÁ
+- SOBREESCRITA
+- POR
+- main()
 securityDefinitions:
   ApiKeyAuth:
     in: header
