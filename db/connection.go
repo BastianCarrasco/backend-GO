@@ -43,7 +43,7 @@ func GetCollection(collectionName string) *mongo.Collection {
 	if Client == nil {
 		log.Fatal("Error: El cliente de MongoDB no está inicializado. Llama a ConnectDB() primero.")
 	}
-	return Client.Database("Cartera_Mongo").Collection(collectionName)
+	return Client.Database("CARTERA").Collection(collectionName) 
 }
 
 // GetProyectosCollection obtiene específicamente la colección "PROYECTOS"
